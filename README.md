@@ -4,8 +4,8 @@
 
 Inject sanitized, structured snapshots into any Node.js app, browser bundle, or browser extension — without changing product behavior, without a cloud account, and without a database. Logs land in a local NDJSON file or browser storage and can be read, queried, and cleared programmatically.
 
-[![npm version](https://img.shields.io/npm/v/snaplog)](https://www.npmjs.com/package/snaplog)
-[![license](https://img.shields.io/npm/l/snaplog)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/@kaibelmo/snaplog)](https://www.npmjs.com/package/@kaibelmo/snaplog)
+[![license](https://img.shields.io/npm/l/@kaibelmo/snaplog)](./LICENSE)
 
 ---
 
@@ -57,11 +57,11 @@ When you ask your AI agent to "use the snaplog skill to debug this issue", the a
 ## Install
 
 ```bash
-npm install snaplog
+npm install @kaibelmo/snaplog
 # or
-pnpm add snaplog
+pnpm add @kaibelmo/snaplog
 # or
-yarn add snaplog
+yarn add @kaibelmo/snaplog
 ```
 
 ---
@@ -69,8 +69,8 @@ yarn add snaplog
 ## Quick Start — Node.js
 
 ```ts
-import { createSnaplogClient } from "snaplog";
-import { createNodeSnaplogTransport } from "snaplog/node";
+import { createSnaplogClient } from "@kaibelmo/snaplog";
+import { createNodeSnaplogTransport } from "@kaibelmo/snaplog/node";
 
 const snaplog = createSnaplogClient({
   runtime: "node",
@@ -107,8 +107,8 @@ console.log(entries);
 Use `snaplog/extension` in background scripts, content scripts, popups, or options pages. Do **not** import `snaplog/node` into browser bundles.
 
 ```ts
-import { createSnaplogClient } from "snaplog";
-import { createExtensionSnaplogTransport } from "snaplog/extension";
+import { createSnaplogClient } from "@kaibelmo/snaplog";
+import { createExtensionSnaplogTransport } from "@kaibelmo/snaplog/extension";
 
 const snaplog = createSnaplogClient({
   runtime: "extension-background",
@@ -127,7 +127,7 @@ snaplog.injectLog({ tabId, messageType, payload }, { tags: ["message"] });
 Read logs from any extension context:
 
 ```ts
-import { readExtensionSnaplogEntries } from "snaplog/extension";
+import { readExtensionSnaplogEntries } from "@kaibelmo/snaplog/extension";
 
 const entries = await readExtensionSnaplogEntries(chrome.storage.local);
 ```
@@ -194,7 +194,7 @@ snaplog serializes every value before writing it, so you never accidentally log:
 Customize the serializer:
 
 ```ts
-import { buildSerializer } from "snaplog";
+import { buildSerializer } from "@kaibelmo/snaplog";
 
 const { serialize } = buildSerializer({
   maxDepth: 6,
@@ -293,7 +293,7 @@ await snaplog.clearLogs();
 For Node.js, you can also query the log file directly without a client:
 
 ```ts
-import { queryNodeSnaplogEntries } from "snaplog/node";
+import { queryNodeSnaplogEntries } from "@kaibelmo/snaplog/node";
 
 const entries = queryNodeSnaplogEntries(
   { variable: "cartTotal", tags: ["checkout"] },
@@ -341,7 +341,7 @@ import {
   safeSerialize,             // default serializer (backward compat)
   errorToDebug,              // converts Error → plain object
   queryEntries               // filter a SnaplogEntry[] array
-} from "snaplog";
+} from "@kaibelmo/snaplog";
 ```
 
 ### `snaplog/node`
@@ -355,7 +355,7 @@ import {
   clearNodeSnaplogEntries,       // deletes the log file
   queryNodeSnaplogEntries,       // filters log file entries
   DEFAULT_SNAPLOG_PORT           // 7777
-} from "snaplog/node";
+} from "@kaibelmo/snaplog/node";
 ```
 
 ### `snaplog/extension`
@@ -367,7 +367,7 @@ import {
   clearExtensionSnaplogEntries,      // removes key from storage
   queryExtensionSnaplogEntries,      // filters storage entries
   DEFAULT_EXTENSION_SNAPLOG_KEY      // "snaplogDebug"
-} from "snaplog/extension";
+} from "@kaibelmo/snaplog/extension";
 ```
 
 ### `SnaplogClient` methods

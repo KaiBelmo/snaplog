@@ -1,5 +1,5 @@
 {
-  "name": "snaplog",
+  "name": "@kaibelmo/snaplog",
   "version": "0.1.0",
   "description": "Portable TypeScript runtime snapshot debugger — log, batch, and inspect state without changing product behavior.",
   "keywords": ["debug", "logging", "snapshot", "typescript", "node", "browser", "extension", "diagnostics"],
