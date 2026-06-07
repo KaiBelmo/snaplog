@@ -41,6 +41,19 @@ Most debugging tools are either too heavy (full APM platforms with cloud account
 
 ---
 
+## Using as an AI Skill
+
+This repository is formatted as an AI coding skill. The `SKILL.md` file at the root contains instructions for AI coding agents to help you debug your codebase automatically.
+
+When you ask your AI agent to "use the snaplog skill to debug this issue", the agent will read the skill instructions and know how to:
+1. Identify the best state boundaries to instrument based on your bug description.
+2. Automatically inject `snaplog.injectLog` into your code.
+3. Run the local collector server to capture the state.
+4. Analyze the generated logs to pinpoint the root cause of your bug.
+5. Propose a fix and clean up the temporary instrumentation.
+
+---
+
 ## Install
 
 ```bash
