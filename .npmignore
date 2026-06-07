@@ -1,0 +1,16 @@
+# Source — not needed by consumers, only the compiled dist/ is shipped
+src/
+scripts/
+*.test.ts
+*.tsbuildinfo
+
+# Dev config
+tsconfig.json
+vitest.config.ts
+.gitignore
+.debug/
+
+# Agent/skill internals
+SKILL.md
+agents/
+assets/

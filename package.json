@@ -1,0 +1,49 @@
+{
+  "name": "snaplog",
+  "version": "0.1.0",
+  "description": "Portable TypeScript runtime snapshot debugger — log, batch, and inspect state without changing product behavior.",
+  "keywords": ["debug", "logging", "snapshot", "typescript", "node", "browser", "extension", "diagnostics"],
+  "author": "KaiBelmo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KaiBelmo/snaplog.git"
+  },
+  "homepage": "https://github.com/KaiBelmo/snaplog#readme",
+  "bugs": {
+    "url": "https://github.com/KaiBelmo/snaplog/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js"
+    },
+    "./extension": {
+      "types": "./dist/extension.d.ts",
+      "import": "./dist/extension.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --exclude \"dist/**\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}
