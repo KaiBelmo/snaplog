@@ -1,299 +1,365 @@
-# snaplog
+# Snaplog Skill
 
-**Portable TypeScript runtime snapshot debugger.**
+**AI-assisted runtime snapshot debugging for TypeScript projects.**
 
-Inject sanitized, structured snapshots into any Node.js app, browser bundle, or browser extension — without changing product behavior, without a cloud account, and without a database. Logs land in a local NDJSON file or browser storage and can be read, queried, and cleared programmatically.
+Snaplog Skill helps AI coding agents debug runtime state in Node.js apps, browser bundles, and browser extensions. It gives the agent a repeatable workflow for deciding what to inspect, where to instrument, how to capture logs locally, and how to interpret the results.
 
-[![npm version](https://img.shields.io/npm/v/@kaibelmo/snaplog)](https://www.npmjs.com/package/@kaibelmo/snaplog)
-[![license](https://img.shields.io/npm/l/@kaibelmo/snaplog)](./LICENSE)
-
----
-
-## Table of Contents
-
-- [Why snaplog](#why-snaplog)
-- [Install](#install)
-- [Quick Start — Node.js](#quick-start--nodejs)
-- [Browser Extension](#browser-extension)
-- [Standalone Collector Server](#standalone-collector-server)
-- [Configuration Reference](#configuration-reference)
-- [Serialization & Redaction](#serialization--redaction)
-- [Batching](#batching)
-- [Flow Tracking](#flow-tracking)
-- [Querying Logs](#querying-logs)
-- [Debug Workflow](#debug-workflow)
-- [Variable Selection Guide](#variable-selection-guide)
-- [API Reference](#api-reference)
-- [Contributing](#contributing)
-- [License](#license)
+The bundled `snaplog` library is only the tool used by the skill. The main purpose of this repository is the **skill**: a structured debugging process that lets an AI agent add temporary, safe, local instrumentation and use the captured state to find bugs.
 
 ---
 
-## Why snaplog
+## What This Skill Does
 
-Most debugging tools are either too heavy (full APM platforms with cloud accounts and agents) or too basic (scattered `console.log` calls that you forget to remove). snaplog sits in the middle:
+Use this skill when you want an AI agent to debug problems such as:
 
-- **Zero external dependencies** — pure Node.js built-ins and browser APIs
-- **Runs entirely locally** — no data leaves your machine
-- **Safe by design** — sensitive keys and bearer tokens are redacted automatically
-- **Structured** — every snapshot is a typed `SnaplogEntry` you can query and filter
-- **Temporary-first** — designed for debugging sessions, not permanent instrumentation
+- A value exists earlier in the flow but disappears later.
+- A branch condition behaves differently than expected.
+- A browser extension message, tab event, or storage update is malformed.
+- A Node.js request, job, or service pipeline mutates state incorrectly.
+- A multi-step operation fails but normal logs do not show where.
+- You need temporary runtime snapshots without setting up a cloud logging tool.
+
+The skill guides the agent to:
+
+1. Understand the bug as a state-flow problem.
+2. Find the smallest useful instrumentation boundary.
+3. Snapshot only high-signal variables.
+4. Redact sensitive values automatically.
+5. Capture logs locally.
+6. Analyze the snapshots.
+7. Suggest a fix.
+8. Remove the temporary instrumentation.
 
 ---
 
-## Using as an AI Skill
+## Repository Structure
 
-This repository is formatted as an AI coding skill. The `SKILL.md` file at the root contains instructions for AI coding agents to help you debug your codebase automatically.
+```text
+.
+├── SKILL.md
+├── assets/
+│   ├── snaplog-package/
+│   └── snippets/
+└── README.md
+```
 
-When you ask your AI agent to "use the snaplog skill to debug this issue", the agent will read the skill instructions and know how to:
-1. Identify the best state boundaries to instrument based on your bug description.
-2. Automatically inject `snaplog.injectLog` into your code.
-3. Run the local collector server to capture the state.
-4. Analyze the generated logs to pinpoint the root cause of your bug.
-5. Propose a fix and clean up the temporary instrumentation.
+### `SKILL.md`
+
+The main instruction file for AI coding agents. It explains when and how to use Snaplog Skill, how to choose variables, where to inject snapshots, and how to interpret results.
+
+### `assets/snaplog-package`
+
+A portable TypeScript package used by the skill to record local runtime snapshots. This is the instrumentation tool, not the main purpose of the repo.
+
+### `assets/snippets`
+
+Optional helper snippets, such as a standalone local collector server script.
 
 ---
 
-## Install
+## How To Use The Skill
+
+Ask your AI coding agent to use this repository as a skill, for example:
+
+```text
+Use the snaplog skill to debug why this value becomes undefined after form submission.
+```
+
+Or:
+
+```text
+Use Snaplog Skill to inspect the extension message flow and find where the payload changes.
+```
+
+The agent should read `SKILL.md`, inspect your project, add minimal temporary instrumentation, run the reproduction flow, inspect the generated logs, explain the root cause, and clean up the debug code.
+
+---
+
+## Recommended Debug Workflow
+
+The skill follows this workflow:
+
+1. **Restate the bug**
+
+   Define the actor, trigger, expected state, observed state, and suspected boundary.
+
+2. **Find the code path**
+
+   Search for the smallest part of the code where the value enters, changes, or leaves the system.
+
+3. **Choose variables to snapshot**
+
+   Prefer boundary inputs, branch decisions, state transitions, persistence edges, and error summaries.
+
+4. **Inject temporary snapshots**
+
+   Add `snaplog.injectLog()` only at the most useful locations.
+
+5. **Reproduce the issue**
+
+   Run the smallest command, test, or manual flow that triggers the bug.
+
+6. **Read the logs**
+
+   Inspect `.debug/debug.log` in Node.js or extension storage in browser extension contexts.
+
+7. **Interpret and fix**
+
+   Use the snapshots to locate the root cause and propose the smallest safe fix.
+
+8. **Clean up**
+
+   Remove temporary instrumentation unless the user explicitly asks to keep diagnostics.
+
+---
+
+## Choosing What To Snapshot
+
+The skill should snapshot values that explain state movement, not entire objects.
+
+Rank variables by signal value:
+
+1. **Boundary inputs**
+   - Request payloads
+   - Message payloads
+   - Route params
+   - Store selectors
+   - Function inputs
+
+2. **Branch decisions**
+   - Booleans
+   - Status enums
+   - Feature flags
+   - Permission checks
+   - Validation results
+
+3. **State transitions**
+   - Previous value
+   - Next value
+   - Selected ID
+   - Count
+   - Source label
+
+4. **Persistence edges**
+   - Value before write
+   - Write result
+   - Value after read
+   - Storage key
+
+5. **Error summaries**
+   - Error name
+   - Message
+   - Status code
+   - Provider/source
+
+Avoid snapshotting:
+
+- Raw secrets
+- Tokens
+- Passwords
+- Authorization headers
+- Full profile objects
+- Full DOM nodes
+- Huge arrays
+- Unbounded nested objects
+
+Prefer:
+
+- IDs
+- Counts
+- Keys
+- Booleans
+- Status strings
+- Hashes
+- Redacted previews
+
+---
+
+## Installing The Bundled Package
+
+The skill uses the bundled `snaplog` package from `assets/snaplog-package`.
+
+If the target project already has `snaplog`, use the existing package. Otherwise, copy the bundled package into the project.
+
+### Copy into a workspace project
 
 ```bash
-npm install @kaibelmo/snaplog
-# or
-pnpm add @kaibelmo/snaplog
-# or
-yarn add @kaibelmo/snaplog
+cp -R assets/snaplog-package <project>/packages/snaplog
+```
+
+Then add it as a dependency:
+
+```json
+{
+  "dependencies": {
+    "snaplog": "workspace:*"
+  }
+}
+```
+
+### Copy into a non-workspace project
+
+```bash
+cp -R assets/snaplog-package <project>/packages/snaplog
+```
+
+Then use a local dependency:
+
+```json
+{
+  "dependencies": {
+    "snaplog": "file:./packages/snaplog"
+  }
+}
+```
+
+### Optional TypeScript paths
+
+Only add path aliases if the project resolves local source packages directly:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "snaplog": ["packages/snaplog/src/index.ts"],
+      "snaplog/node": ["packages/snaplog/src/node.ts"],
+      "snaplog/extension": ["packages/snaplog/src/extension.ts"]
+    }
+  }
+}
 ```
 
 ---
 
-## Quick Start — Node.js
+## Node.js Runtime Snapshots
+
+For Node.js apps, use the Node transport. It writes local NDJSON logs to `.debug/debug.log`.
 
 ```ts
-import { createSnaplogClient } from "@kaibelmo/snaplog";
-import { createNodeSnaplogTransport } from "@kaibelmo/snaplog/node";
+import { createSnaplogClient } from "snaplog";
+import { createNodeSnaplogTransport } from "snaplog/node";
 
 const snaplog = createSnaplogClient({
   runtime: "node",
-  source: "checkout/applyDiscount",   // labels every entry from this client
+  source: "checkout/applyDiscount",
   transport: createNodeSnaplogTransport()
-  // → auto-starts an HTTP collector on port 7777
-  // → writes NDJSON to .debug/debug.log
 });
 
-// Snapshot any variables at a state boundary
-snaplog.injectLog({
-  userTier: user.tier,
-  cartTotal: cart.total,
-  discount
-}, { tags: ["checkout"] });
+snaplog.injectLog(
+  {
+    userTier: user.tier,
+    cartTotal: cart.total,
+    discount
+  },
+  { tags: ["checkout"] }
+);
 
-// Before process exit, flush any buffered entries
 await snaplog.flush();
 ```
 
-Open `.debug/debug.log` to read the raw NDJSON, or query programmatically:
-
-```ts
-const entries = await snaplog.queryLogs({ tags: ["checkout"] });
-console.log(entries);
-```
-
-**Remove instrumentation** once the bug is fixed. snaplog is designed to be temporary.
+The Node transport starts a local collector automatically and writes to `.debug/debug.log`.
 
 ---
 
-## Browser Extension
+## Browser Extension Snapshots
 
-Use `snaplog/extension` in background scripts, content scripts, popups, or options pages. Do **not** import `snaplog/node` into browser bundles.
+For browser extensions, use the extension transport. Do not import `snaplog/node` into browser bundles.
 
 ```ts
-import { createSnaplogClient } from "@kaibelmo/snaplog";
-import { createExtensionSnaplogTransport } from "@kaibelmo/snaplog/extension";
+import { createSnaplogClient } from "snaplog";
+import { createExtensionSnaplogTransport } from "snaplog/extension";
 
 const snaplog = createSnaplogClient({
   runtime: "extension-background",
   source: "background/messageHandler",
   transport: createExtensionSnaplogTransport({
     storage: chrome.storage.local,
-    maxEntries: 300,        // rotate: oldest entries evicted when cap is reached
-    warnOnQuota: true,      // console.warn at 80 % of maxEntries
-    quotaWarnRatio: 0.75    // tune the warning threshold
+    maxEntries: 300,
+    warnOnQuota: true,
+    quotaWarnRatio: 0.75
   })
 });
 
-snaplog.injectLog({ tabId, messageType, payload }, { tags: ["message"] });
+snaplog.injectLog(
+  {
+    tabId,
+    messageType,
+    hasPayload: Boolean(payload)
+  },
+  { tags: ["message-flow"] }
+);
 ```
 
-Read logs from any extension context:
+Read extension logs from another extension context:
 
 ```ts
-import { readExtensionSnaplogEntries } from "@kaibelmo/snaplog/extension";
+import { readExtensionSnaplogEntries } from "snaplog/extension";
 
 const entries = await readExtensionSnaplogEntries(chrome.storage.local);
+console.log(entries);
 ```
 
 ---
 
-## Standalone Collector Server
+## Local Collector Server
 
-If you want a persistent collector running separately from your app, use the bundled script:
+For most Node.js usage, `createNodeSnaplogTransport()` is enough.
+
+If you want a separate persistent collector process, copy the snippet from `assets/snippets/start-snaplog-server.ts` into the target project and run it with the project’s TypeScript runner:
 
 ```bash
-# Requires tsx (or ts-node)
-npx tsx scripts/start-server.ts
+tsx scripts/start-snaplog-server.ts
 ```
 
-The server listens on `http://127.0.0.1:7777/log` and writes to `.debug/debug.log`. Your app's `createNodeSnaplogTransport()` will automatically POST to it.
+The default collector listens on:
 
-> **Port conflicts**: The Node transport tries up to 10 consecutive ports starting from `7777` if the default is in use. Override with the `port` option:
->
-> ```ts
-> createNodeSnaplogTransport({ port: 9000 })
-> ```
-
----
-
-## Configuration Reference
-
-All options passed to `createSnaplogClient()`:
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `runtime` | `SnaplogRuntime` | `"unknown"` | Labels every entry: `"node"`, `"browser"`, `"extension-background"`, etc. |
-| `source` | `string` | `"unknown"` | File or function label for every entry, e.g. `"checkout/applyDiscount"` |
-| `sessionId` | `string` | `"sess_<timestamp>"` | Groups entries from the same process/tab run |
-| `transport` | `SnaplogTransport` | `undefined` | Where entries are written. Use `createNodeSnaplogTransport()` or `createExtensionSnaplogTransport()` |
-| `debugEnabled` | `() => boolean` | `() => true` | Gates `debugLog/Warn/Error` calls. Wire to a feature flag to disable in production |
-| `console` | `Console` subset | `globalThis.console` | Inject a custom logger (useful in tests) |
-| `maxAttempts` | `number` | `200` | Max in-memory `SnaplogAttemptRecord` entries before oldest are evicted |
-| `batchIntervalMs` | `number` | `0` (off) | Coalesce rapid `injectLog` calls and flush in a single write every N ms |
-| `serialize` | `SnaplogSerializeOptions` | see below | Controls serialization depth, limits, and extra redact keys |
-
-### `SnaplogSerializeOptions`
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `maxDepth` | `number` | `4` | Max recursion depth into nested objects |
-| `maxArrayItems` | `number` | `20` | Max array items serialized |
-| `maxStringLength` | `number` | `500` | Strings longer than this are truncated with `...` |
-| `redactKeys` | `string[]` | `[]` | Additional key names to redact (merged with built-in list) |
-
-**Built-in redacted keys** (case-insensitive): `token`, `authorization`, `passphrase`, `password`, `secret`, `ciphertext`, `iv`, `salt`, `encryptedData`, `apikey`, `api_key`, `privatekey`, `private_key`.
-
----
-
-## Serialization & Redaction
-
-snaplog serializes every value before writing it, so you never accidentally log:
-- Circular references → `"[Circular]"`
-- Functions → `"[Function]"`
-- Values too deep → `"[max-depth]"`
-- Sensitive keys → `"[redacted]"`
-- Bearer tokens in strings → `"[redacted]"`
-
-Customize the serializer:
-
-```ts
-import { buildSerializer } from "@kaibelmo/snaplog";
-
-const { serialize } = buildSerializer({
-  maxDepth: 6,
-  maxArrayItems: 50,
-  maxStringLength: 1000,
-  redactKeys: ["creditCard", "ssn", "dob"]
-});
-
-const safe = serialize(someDeepObject);
+```text
+http://127.0.0.1:7777/log
 ```
 
-Or pass `serialize` options directly to the client:
+The Node transport tries consecutive ports if `7777` is already in use. You can override the port:
 
 ```ts
-const snaplog = createSnaplogClient({
-  serialize: {
-    redactKeys: ["apiSecret", "refreshToken"]
-  }
-});
-```
-
----
-
-## Batching
-
-When your code calls `injectLog` in a tight loop, you can reduce I/O by enabling batching:
-
-```ts
-const snaplog = createSnaplogClient({
-  transport: createNodeSnaplogTransport(),
-  batchIntervalMs: 50  // flush every 50 ms
-});
-
-// These 1000 calls are coalesced into a single write
-for (const item of largeList) {
-  snaplog.injectLog({ itemId: item.id, status: item.status });
-}
-
-// Always call flush() before process exit when batchIntervalMs > 0
-process.on("beforeExit", () => snaplog.flush());
-await snaplog.flush();
-```
-
-If your transport implements `recordBatch(entries)`, the batch is delivered in one call. Otherwise individual `record()` calls are made for each entry.
-
----
-
-## Flow Tracking
-
-Track multi-step operations end-to-end:
-
-```ts
-const attemptId = await snaplog.beginDebugAttempt({ orderId: order.id });
-
-try {
-  await validateInventory(order);
-  await snaplog.recordDebugEvent("inventory-ok", { reserved: true }, attemptId);
-
-  await chargePayment(order);
-  await snaplog.recordDebugEvent("payment-ok", { chargeId }, attemptId);
-
-  await snaplog.finishDebugAttempt("success", undefined, attemptId);
-} catch (err) {
-  await snaplog.finishDebugAttempt("error", err, attemptId);
-}
-
-// Read all flow entries for this attempt
-const flowLogs = await snaplog.queryLogs({ event: "flow", flowId: attemptId });
+createNodeSnaplogTransport({ port: 9000 });
 ```
 
 ---
 
 ## Querying Logs
 
+Read all logs:
+
 ```ts
-// All entries
-const all = await snaplog.readLogs();
+const entries = await snaplog.readLogs();
+```
 
-// Filter by variable name
-const discountLogs = await snaplog.queryLogs({ variable: "discount" });
+Filter by variable:
 
-// Filter by source, event type, tags, or flowId
-const checkoutErrors = await snaplog.queryLogs({
+```ts
+const logs = await snaplog.queryLogs({ variable: "discount" });
+```
+
+Filter by source, event, tags, or timestamp:
+
+```ts
+const checkoutLogs = await snaplog.queryLogs({
   source: "checkout",
   event: "snapshot",
-  tags: ["checkout"]
+  tags: ["checkout"],
+  after: Date.now() - 60_000
 });
+```
 
-// Entries after a timestamp
-const recent = await snaplog.queryLogs({ after: Date.now() - 60_000 });
+Clear logs:
 
-// Clear all
+```ts
 await snaplog.clearLogs();
 ```
 
-For Node.js, you can also query the log file directly without a client:
+For Node.js log files, query directly:
 
 ```ts
-import { queryNodeSnaplogEntries } from "@kaibelmo/snaplog/node";
+import { queryNodeSnaplogEntries } from "snaplog/node";
 
 const entries = queryNodeSnaplogEntries(
   { variable: "cartTotal", tags: ["checkout"] },
@@ -303,112 +369,143 @@ const entries = queryNodeSnaplogEntries(
 
 ---
 
-## Debug Workflow
+## Flow Tracking
 
-1. **Restate the bug** as: actor, trigger, expected state, observed state, suspected code boundary
-2. **Find the code path** with a search tool and identify the smallest instrumentation point
-3. **Add 1–2 snapshots** that prove or disprove your hypothesis
-4. **Reproduce** with the narrowest command or manual flow
-5. **Read the logs** — `.debug/debug.log` or your configured storage
-6. **Interpret** and either fix the bug or add the next minimal snapshot
-7. **Remove** temporary instrumentation and rerun relevant tests/typecheck
+Use flow tracking when a bug spans multiple steps.
+
+```ts
+const attemptId = await snaplog.beginDebugAttempt({ orderId: order.id });
+
+try {
+  await validateInventory(order);
+  await snaplog.recordDebugEvent("inventory-ok", { reserved: true }, attemptId);
+
+  await chargePayment(order);
+  await snaplog.recordDebugEvent("payment-ok", { charged: true }, attemptId);
+
+  await snaplog.finishDebugAttempt("success", undefined, attemptId);
+} catch (error) {
+  await snaplog.finishDebugAttempt("error", error, attemptId);
+}
+
+const flowLogs = await snaplog.queryLogs({
+  event: "flow",
+  flowId: attemptId
+});
+```
 
 ---
 
-## Variable Selection Guide
+## Serialization And Redaction
 
-When choosing what to snapshot, rank by signal value:
+The bundled package safely serializes values before writing logs.
 
-1. **Boundary inputs** — request payloads, message data, route params, store selectors
-2. **Branch decisions** — booleans, status enums, feature flags, permission checks
-3. **State transitions** — previous value, next value, selected ID, count, source label
-4. **Persistence edges** — value before write, write result, value after read
-5. **Error summaries** — error name, message, status code, provider/source
+It handles:
 
-**Avoid**: raw secrets, tokens, passphrases, auth headers, full profile objects, full DOM nodes, unbounded collections. Prefer counts, IDs, hashes, booleans, and redacted previews.
+- Circular references
+- Functions
+- Deep objects
+- Large arrays
+- Long strings
+- Sensitive keys
+- Bearer tokens in strings
+
+Built-in redacted keys include:
+
+```text
+token, authorization, passphrase, password, secret, ciphertext, iv, salt,
+encryptedData, apikey, api_key, privatekey, private_key
+```
+
+Add project-specific redaction keys:
+
+```ts
+const snaplog = createSnaplogClient({
+  serialize: {
+    redactKeys: ["creditCard", "ssn", "refreshToken"]
+  }
+});
+```
 
 ---
 
-## API Reference
+## Skill Prompt Template
 
-### `snaplog` (main entry point)
+Use this internal pattern when asking an AI agent to apply the skill:
 
-```ts
-import {
-  createSnaplogClient,       // factory for the debug client
-  createMemorySnaplogStore,  // in-memory transport (useful in tests)
-  buildSerializer,           // configurable safe serializer factory
-  safeSerialize,             // default serializer (backward compat)
-  errorToDebug,              // converts Error → plain object
-  queryEntries               // filter a SnaplogEntry[] array
-} from "@kaibelmo/snaplog";
+```text
+Role: Senior fullstack debugger.
+Task: Diagnose [state problem] using Snaplog runtime snapshots.
+Context: [runtime, trigger, expected state, observed state, suspected files].
+Steps:
+1. Find the state boundary most likely to lose or mutate the value.
+2. Select the minimum variables to snapshot.
+3. Add sanitized, non-blocking instrumentation.
+4. Reproduce and inspect local Snaplog entries.
+5. Explain the root cause and smallest fix.
+Output:
+- Variable list
+- Insertion points
+- Reproduction command
+- Log interpretation
+- Root cause
+- Fix
+- Cleanup notes
 ```
 
-### `snaplog/node`
+---
 
-```ts
-import {
-  createNodeSnaplogTransport,    // Node HTTP + file transport
-  ensureServer,                  // starts the local HTTP collector
-  stopServer,                    // shuts it down
-  readNodeSnaplogEntries,        // reads NDJSON log file
-  clearNodeSnaplogEntries,       // deletes the log file
-  queryNodeSnaplogEntries,       // filters log file entries
-  DEFAULT_SNAPLOG_PORT           // 7777
-} from "@kaibelmo/snaplog/node";
-```
+## Quality Bar
 
-### `snaplog/extension`
+A correct Snaplog Skill run should satisfy these rules:
 
-```ts
-import {
-  createExtensionSnaplogTransport,   // chrome.storage transport
-  readExtensionSnaplogEntries,       // reads from storage
-  clearExtensionSnaplogEntries,      // removes key from storage
-  queryExtensionSnaplogEntries,      // filters storage entries
-  DEFAULT_EXTENSION_SNAPLOG_KEY      // "snaplogDebug"
-} from "@kaibelmo/snaplog/extension";
-```
+- Debug logging must not change product behavior.
+- Instrumentation should be temporary by default.
+- Logging failures should never break the app.
+- Node-only imports must stay out of browser bundles.
+- Sensitive values must be redacted.
+- Snapshots should be minimal and high signal.
+- The agent should explain why each snapshot was chosen.
+- The agent should remove instrumentation after the bug is fixed unless asked otherwise.
 
-### `SnaplogClient` methods
+---
 
-| Method | Description |
-|---|---|
-| `injectLog(vars, opts?)` | Snapshot a record of key→value pairs |
-| `debugLog(...args)` | Console.log + record a debug entry |
-| `debugWarn(...args)` | Console.warn + record a debug entry |
-| `debugError(...args)` | Console.error + record a debug entry |
-| `beginDebugAttempt(details?)` | Start a tracked flow, returns `attemptId` |
-| `recordDebugEvent(stage, details?, attemptId?)` | Append an event to a flow |
-| `finishDebugAttempt(status, error?, attemptId?)` | Complete a flow |
-| `getDebugAttempt(attemptId?)` | Read a flow record |
-| `readLogs()` | Read all transport entries |
-| `queryLogs(query)` | Filter entries by variable/source/tags/event/flowId/after |
-| `clearLogs()` | Clear transport + in-memory attempts |
-| `flush()` | Flush pending batched entries immediately |
+## When Not To Use This Skill
+
+Do not use Snaplog Skill when:
+
+- Static code inspection is enough.
+- A normal unit test clearly exposes the bug.
+- The target environment cannot safely run instrumented code.
+- The user needs permanent observability or production APM.
+- The required data is highly sensitive and cannot be safely summarized or redacted.
 
 ---
 
 ## Contributing
 
+When improving the skill:
+
 ```bash
-# Install deps
 npm install
-
-# Run tests
 npm test
-
-# Type check
 npm run typecheck
-
-# Build
 npm run build
 ```
 
-All tests live in `src/*.test.ts` and run with [Vitest](https://vitest.dev). Please add or update tests for any behavior changes before opening a PR.
+Add or update tests for behavior changes in the bundled package.
+
+When editing `SKILL.md`, keep instructions focused on agent behavior:
+
+- When to use the skill
+- How to select instrumentation points
+- What variables to snapshot
+- How to avoid unsafe logging
+- How to interpret logs
+- How to clean up afterward
 
 ---
 
 ## License
 
-[MIT](./LICENSE) © KaiBelmo
+[MIT](./LICENSE) © Kai Belmo
