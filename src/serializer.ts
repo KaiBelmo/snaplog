@@ -75,7 +75,12 @@ export const safeSerialize = _default.serialize;
 
 export function errorToDebug(error: unknown): { name?: string; message: string; stack?: string } {
   if (error instanceof Error) {
-    return { name: error.name, message: error.message, stack: error.stack };
+    const result: { name?: string; message: string; stack?: string } = {
+      name: error.name,
+      message: error.message,
+    };
+    if (error.stack !== undefined) result.stack = error.stack;
+    return result;
   }
   return { message: String(error) };
 }
