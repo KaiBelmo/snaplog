@@ -63,11 +63,11 @@ describe("snaplog core", () => {
     await expect(disabled.readLogs()).resolves.toEqual([]);
 
     const enabled = createSnaplogClient({ debugEnabled: () => true, transport: store, console: logger });
-    enabled.debugWarn("visible", { value: "abc" });
+    enabled.debugWarn("visible", { secret: "abc" });
 
-    expect(logger.warn).toHaveBeenCalledWith("visible", { value: "abc" });
+    expect(logger.warn).toHaveBeenCalledWith("visible", { secret: "abc" });
     await expect(enabled.queryLogs({ event: "debug" })).resolves.toMatchObject([
-      { event: "debug", level: "warn", message: "visible {\"value\":\"[redacted]\"}" }
+      { event: "debug", level: "warn", message: "visible {\"secret\":\"[redacted]\"}" }
     ]);
   });
 
