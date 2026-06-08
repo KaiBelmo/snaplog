@@ -39,13 +39,7 @@ npm run typecheck
 
 For Node apps, `createNodeSnaplogTransport()` auto-starts a collector on first record and writes NDJSON to `.debug/debug.log`.
 
-To run a standalone collector, use the script in this repository:
-
-```bash
-npx tsx node_modules/@kaibelmo/snaplog/scripts/start-server.ts
-```
-
-If the target project lacks `tsx`, either use its existing TypeScript runner or compile the script with `tsc` and run Node on the emitted JavaScript.
+Keep the instrumented Node process running while reproducing the issue. The npm package is intended to be used from application code; do not rely on repository-only scripts such as `scripts/start-server.ts` in installed packages.
 
 ## Inject Snapshots
 
