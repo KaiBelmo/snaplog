@@ -1,5 +1,5 @@
-import { queryEntries } from "./memory-store";
-import type { SnaplogEntry, SnaplogQuery, SnaplogTransport } from "./types";
+import { queryEntries } from "./memory-store.js";
+import type { SnaplogEntry, SnaplogQuery, SnaplogTransport } from "./types.js";
 
 export const DEFAULT_EXTENSION_SNAPLOG_KEY = "snaplogDebug";
 

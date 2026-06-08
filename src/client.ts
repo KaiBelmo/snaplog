@@ -1,4 +1,4 @@
-import { buildSerializer, errorToDebug } from "./serializer";
+import { buildSerializer, errorToDebug } from "./serializer.js";
 import type {
   InjectLogOptions,
   SnaplogAttemptRecord,
@@ -9,8 +9,8 @@ import type {
   SnaplogRuntime,
   SnaplogStatus,
   SnaplogTransport
-} from "./types";
-import { queryEntries } from "./memory-store";
+} from "./types.js";
+import { queryEntries } from "./memory-store.js";
 
 const DEFAULT_SOURCE = "unknown";
 const DEFAULT_RUNTIME: SnaplogRuntime = "unknown";

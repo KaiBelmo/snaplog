@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createExtensionSnaplogTransport, queryExtensionSnaplogEntries } from "./extension";
-import type { SnaplogEntry } from "./types";
+import { createExtensionSnaplogTransport, queryExtensionSnaplogEntries } from "./extension.js";
+import type { SnaplogEntry } from "./types.js";
 
 function createStorage(initial: Record<string, unknown> = {}) {
   let values = { ...initial };

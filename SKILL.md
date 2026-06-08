@@ -1,81 +1,59 @@
 ---
 name: snaplog
-description: Portable TypeScript runtime snapshot debugging with a bundled snaplog package. Use when the user asks to use snaplog, run a local snapshot/debug collector, inject debug instrumentation, decide which variables to snapshot, debug Node/browser/extension state flow, save logs locally, or inspect runtime state without changing product behavior.
+description: Portable TypeScript runtime snapshot debugging with the published `@kaibelmo/snaplog` package. Use when the user asks to use snaplog, run a local snapshot/debug collector, inject debug instrumentation, decide which variables to snapshot, debug Node/browser/extension state flow, save logs locally, or inspect runtime state without changing product behavior.
 ---
 
 # Snaplog
 
-Use this skill to debug TypeScript runtime state with the bundled `snaplog` package in `assets/snaplog-package`. The package provides `injectLog`, debug console wrappers, flow/attempt records, a Node local HTTP/file collector, and a browser/extension storage transport.
+Use this skill to debug TypeScript runtime state with the published `@kaibelmo/snaplog` package. The package provides `injectLog`, debug console wrappers, flow/attempt records, a Node local HTTP/file collector, and a browser/extension storage transport.
 
 ## First Decide
 
-- If the project already has `snaplog`, use the existing package.
-- If not, copy `assets/snaplog-package` into the target project, usually as `packages/snaplog`.
-- If the target project uses scoped internal packages, rename the copied package in `package.json` and update imports consistently.
+- If the project already depends on `@kaibelmo/snaplog`, use the existing package.
+- If not, install `@kaibelmo/snaplog` in the target project.
 - Keep instrumentation temporary unless the user asks for durable diagnostics.
 
 ## Install In A TypeScript Project
 
-1. Copy the bundled package:
-
-```powershell
-Copy-Item -Recurse C:\Users\Admin\.codex\skills\snaplog\assets\snaplog-package <project>\packages\snaplog
-```
-
-2. Add it to the workspace or app dependency:
-
-```json
-{
-  "dependencies": {
-    "snaplog": "workspace:*"
-  }
-}
-```
-
-For non-workspace projects, copy the package under a local folder and use a package-manager-supported local dependency such as `file:./packages/snaplog`.
-
-3. Add TypeScript path aliases only if the project resolves source packages directly:
-
-```json
-{
-  "compilerOptions": {
-    "paths": {
-      "snaplog": ["packages/snaplog/src/index.ts"],
-      "snaplog/node": ["packages/snaplog/src/node.ts"],
-      "snaplog/extension": ["packages/snaplog/src/extension.ts"]
-    }
-  }
-}
-```
-
-4. Run the package checks when practical:
+1. Add the package:
 
 ```bash
-pnpm --filter snaplog test
-pnpm --filter snaplog typecheck
+npm install @kaibelmo/snaplog
 ```
 
-Use equivalent `npm` or `yarn` commands if the project does not use pnpm.
+Equivalent package manager commands are fine:
+
+```bash
+pnpm add @kaibelmo/snaplog
+yarn add @kaibelmo/snaplog
+```
+
+2. Run the package checks when practical:
+
+```bash
+npm test
+npm run typecheck
+```
 
 ## Run The Local Node Collector
 
 For Node apps, `createNodeSnaplogTransport()` auto-starts a collector on first record and writes NDJSON to `.debug/debug.log`.
 
-To run a standalone collector, copy `assets/snippets/start-snaplog-server.ts` into the target project, then run it with the project’s TypeScript runner, for example:
+To run a standalone collector, use the script in this repository:
 
 ```bash
-tsx scripts/start-snaplog-server.ts
+npx tsx node_modules/@kaibelmo/snaplog/scripts/start-server.ts
 ```
 
-If the project lacks `tsx`, either use its existing runner or compile the script with `tsc` and run Node on the emitted JavaScript.
+If the target project lacks `tsx`, either use its existing TypeScript runner or compile the script with `tsc` and run Node on the emitted JavaScript.
 
 ## Inject Snapshots
 
 Use snapshots at state boundaries, not everywhere:
 
 ```ts
-import { createSnaplogClient } from "snaplog";
-import { createNodeSnaplogTransport } from "snaplog/node";
+import { createSnaplogClient } from "@kaibelmo/snaplog";
+import { createNodeSnaplogTransport } from "@kaibelmo/snaplog/node";
 
 const snaplog = createSnaplogClient({
   runtime: "node",
@@ -107,24 +85,24 @@ snaplog.injectLog({
 await snaplog.flush();
 ```
 
-For browser or extension contexts, use `createExtensionSnaplogTransport` only when a real storage adapter exists. Do not import `snaplog/node` into browser bundles.
+For browser or extension contexts, use `createExtensionSnaplogTransport` only when a real storage adapter exists. Do not import `@kaibelmo/snaplog/node` into browser bundles.
 
 ```ts
-import { createExtensionSnaplogTransport } from "snaplog/extension";
+import { createExtensionSnaplogTransport } from "@kaibelmo/snaplog/extension";
 
 const transport = createExtensionSnaplogTransport({
   storage: chrome.storage.local,
-  maxEntries: 300,      // rotate oldest entries when cap is reached
-  warnOnQuota: true,    // warn at 80 % of maxEntries (configurable via quotaWarnRatio)
-  quotaWarnRatio: 0.75  // warn earlier if needed
+  maxEntries: 300,
+  warnOnQuota: true,
+  quotaWarnRatio: 0.75
 });
 ```
 
-The Node transport automatically finds a free port if `7777` is in use (tries up to 10 consecutive ports). Override with `port` option if needed.
+The Node transport automatically finds a free port if `7777` is in use. Override with `port` if needed.
 
 ## Choose Variables To Debug
 
-When the user asks “which variable should I debug?”, produce a ranked list:
+When the user asks "which variable should I debug?", produce a ranked list:
 
 1. Boundary inputs: request payloads, message data, route params, store selectors.
 2. Branch decisions: booleans, status enums, feature flags, permission checks.

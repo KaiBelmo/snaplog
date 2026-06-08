@@ -1,7 +1,7 @@
-export { createSnaplogClient } from "./client";
-export type { SnaplogClient } from "./client";
-export { createMemorySnaplogStore, queryEntries } from "./memory-store";
-export { safeSerialize, buildSerializer, errorToDebug } from "./serializer";
+export { createSnaplogClient } from "./client.js";
+export type { SnaplogClient } from "./client.js";
+export { createMemorySnaplogStore, queryEntries } from "./memory-store.js";
+export { safeSerialize, buildSerializer, errorToDebug } from "./serializer.js";
 export type {
   InjectLogOptions,
   SnaplogAttemptRecord,
@@ -13,4 +13,4 @@ export type {
   SnaplogSerializeOptions,
   SnaplogStatus,
   SnaplogTransport
-} from "./types";
+} from "./types.js";

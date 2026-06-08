@@ -1,4 +1,4 @@
-import type { SnaplogEntry, SnaplogQuery } from "./types";
+import type { SnaplogEntry, SnaplogQuery } from "./types.js";
 
 export function createMemorySnaplogStore(maxEntries = 500) {
   let entries: SnaplogEntry[] = [];

@@ -1,4 +1,4 @@
-import type { SnaplogSerializeOptions } from "./types";
+import type { SnaplogSerializeOptions } from "./types.js";
 
 // Built-in sensitive key patterns. "value" intentionally excluded
 // to avoid redacting innocent data like { value: 42 }.

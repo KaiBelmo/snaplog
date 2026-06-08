@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createMemorySnaplogStore, createSnaplogClient, safeSerialize } from "./index";
+import { createMemorySnaplogStore, createSnaplogClient, safeSerialize } from "./index.js";
 
 describe("snaplog core", () => {
   it("serializes debug values without leaking sensitive or unsafe shapes", () => {

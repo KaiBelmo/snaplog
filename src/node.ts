@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { createServer } from "node:http";
 import type { Server } from "node:http";
-import { queryEntries } from "./memory-store";
-import type { SnaplogEntry, SnaplogQuery, SnaplogTransport } from "./types";
+import { queryEntries } from "./memory-store.js";
+import type { SnaplogEntry, SnaplogQuery, SnaplogTransport } from "./types.js";
 
 export const DEFAULT_SNAPLOG_PORT = 7777;
 /** Maximum number of ports to try when the default is in use. */
@@ -126,12 +126,16 @@ function tryListen(port: number, host: string, logPath: string, attempt: number)
   candidate.listen(port, host, () => {
     server = candidate;
     activePort = port;
+    // The collector should not keep a CLI process alive on its own.
+    server.unref();
     // Drain any lines that arrived before the server was ready.
     drainPending(logPath);
   });
 }
 
 export function stopServer(): void {
+  server?.closeAllConnections?.();
+  server?.closeIdleConnections?.();
   server?.close();
   server = undefined;
   activePort = undefined;

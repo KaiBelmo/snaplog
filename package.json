@@ -1,7 +1,7 @@
 {
   "name": "@kaibelmo/snaplog",
   "version": "0.1.0",
-  "description": "AI Skill for runtime snapshot debugging in TypeScript apps",
+  "description": "Portable TypeScript runtime snapshot debugger for Node.js, browser, and extension flows",
   "keywords": [
     "ai-skill",
     "debug",
@@ -52,6 +52,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "example:node": "npm run build && node examples/node-example.mjs",
     "test": "vitest run --exclude \"dist/**\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build",
