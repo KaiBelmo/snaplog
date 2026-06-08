@@ -18,6 +18,12 @@ The skill tells the agent to:
 
 ## How To Use It
 
+Install the skill from GitHub:
+
+```bash
+npx skills add KaiBelmo/snaplog
+```
+
 Ask the agent to use the skill directly:
 
 ```text
